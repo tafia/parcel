@@ -54,6 +54,7 @@ class Parcel {
           }
           ++index
         }
+        mappings.push('ACAA')
         map.mappings = mappings.join(';')
         return JSON.stringify(map)
       }
