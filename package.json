@@ -1,0 +1,9 @@
+{
+  "name": "parcel",
+  "bin": "lib/cli.js",
+  "version": "0.0.1",
+  "description": "The anti-bundler.",
+  "main": "index.js",
+  "author": "Nathan",
+  "license": "MIT"
+}
