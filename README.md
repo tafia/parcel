@@ -46,7 +46,7 @@ That's right, it looks and works just like every other node-style `require()` bu
 
 ## I want source maps!
 
-Don't pipe.
+Just pass the output filename as an argument.
 
 ```sh
 > prcl index.js parcel.js
