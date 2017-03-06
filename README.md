@@ -19,7 +19,7 @@ It has a few extra rules that let it be really fast:
 
 (You really shouldn't be doing any of that anyway.)
 
-So don't stand around waiting for your super-cool, magical bundler to do its thing. Use Parcel while you're developing, and iterate to your heart's content. Then use your super-cool, magical, really slow bundler for releases, when you don't care how long it takes to run.
+So don't stand around waiting for your super-cool, magical bundler to do its thing. Use Parcel while you're developing, and iterate to your heart's content. Use your super-cool, magical, really slow bundler for releases, when you don't care how long it takes to run.
 
 ## How do I use it?
 
@@ -50,6 +50,21 @@ Just pass the output filename as an argument instead of redirecting.
 > prcl index.js parcel.js
 > ls
 ... parcel.js parcel.js.map ...
+```
+
+## I want watching!
+
+There's an option for that.
+
+```sh
+> prcl -w index.js parcel.js
+ready
+generate parcel.js in 5.1463 ms
+generate parcel.js in 5.113103 ms
+generate parcel.js in 3.508507 ms
+generate parcel.js in 4.588618 ms
+generate parcel.js in 3.170847 ms
+...
 ```
 
 ## How fast is it?
