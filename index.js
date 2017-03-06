@@ -13,18 +13,14 @@ class Parcel {
   }
   bundle(mod, cb) {
     this.resolve(null, mod, (e, file) => e ? cb(e) :
-      this.include(file, e => e ? cb(e) :
-        this.generate(file, cb)))
-  }
-  generate(file, cb) {
-    process.nextTick(cb, null, {
-      js: this.js.bind(this, file),
-      map: this.map.bind(this, file),
-      dependencies: this.dependencies.bind(this),
-    })
+      this.include(file, e => {
+        if (e) return cb(e)
+        this.main = file
+        cb(null, this)
+      }))
   }
   dependencies() {return Array.from(this.files.keys())}
-  js(file) {
+  js() {
     let js = JS_START
     for (const [mod, main] of this.mains) {
       js += `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
@@ -32,12 +28,12 @@ class Parcel {
     for (const [file, source] of this.files) {
       js += `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n${source}})`
     }
-    js += `\n  return makeRequire(null)(${this.jsPath(file)})`
+    js += `\n  return makeRequire(null)(${this.jsPath(this.main)})`
     js += JS_END
     return js
   }
-  map(file) {
-    const sourceRoot = path.dirname(file)
+  map() {
+    const sourceRoot = path.dirname(this.main)
     const map = {
       version: 3,
       file: '',
