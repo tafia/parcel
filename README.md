@@ -6,7 +6,7 @@ Don't get me wrong, I love modularizing things, and I love having small files.
 
 What I hate is when I hit ⌘S, ⌘Tab, ⌘R\*, and I, a humble human, beat the super cool magic file system watching bundler running on my my 2.8 GHz processor. I get the old verson, and I have to wait second(s) before I can hit ⌘R again see my changes.
 
-Parcel is a bundler. But I never beat it. Why?
+Parcel is a JavaScript bundler. But I never beat it. Why?
 
 - It doesn't actually parse JavaScript.
 - It works almost entirely by concatenation.
@@ -19,7 +19,7 @@ It has a few extra rules that let it be really fast:
 
 (You really shouldn't be doing any of that anyway.)
 
-So don't stand around waiting for your super cool magic bundler to do its thing. Use Parcel while you're developing, and use your super cool magic (but really slow) bundler for releases.
+So don't stand around waiting for your super cool magic bundler to do its thing. Use Parcel while you're developing, and use your super cool magic (really slow) bundler for releases.
 
 ## How do I use it?
 
@@ -40,6 +40,7 @@ exports.square = x => x * x
 ```
 
 ```sh
+> npm i -g prcl
 > prcl index.js >parcel.js
 ```
 
@@ -54,9 +55,7 @@ Don't pipe.
 ```sh
 > prcl index.js parcel.js
 > ls
-...
-parcel.js
-parcel.js.map
+... parcel.js parcel.js.map ...
 ```
 
 ## How fast?
@@ -85,6 +84,7 @@ real    0m0.204s
 user    0m0.187s
 sys 0m0.083s
 
+# want source maps?
 > time browserify -d src/api-download.js -o bundle.js
 
 real    0m3.142s
