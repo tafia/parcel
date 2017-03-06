@@ -29,6 +29,7 @@ class Parcel {
     process.nextTick(cb, null, {
       js: js,
       map: this.makeMap.bind(this, file),
+      dependencies: () => Array.from(this.files.keys()),
     })
   }
   makeMap(file) {
