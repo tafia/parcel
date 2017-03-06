@@ -27,15 +27,11 @@ Glad you asked! Like this:
 
 ```js
 // index.js:
-'use strict'
 const itt = require('itt')
 const math = require('./math')
-
 console.log(itt.range(10).map(math.square).join(' '))
 
 // math.js:
-'use strict'
-
 exports.square = x => x * x
 ```
 
