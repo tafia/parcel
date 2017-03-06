@@ -24,7 +24,7 @@ class Parcel {
     for (const [file, source] of this.files) {
       js += `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n${source}})`
     }
-    js += `\n  return require(null)(${this.jsPath(file)})`
+    js += `\n  return makeRequire(null)(${this.jsPath(file)})`
     js += JS_END
     process.nextTick(cb, null, {
       js: js,
@@ -172,12 +172,12 @@ const JS_START = '~' + function(baseRequire, core) {
     }
     return '/' + base.join('/')
   }
-  const require = self => {
+  const makeRequire = self => {
     const parts = self ? self.filename.split('/') : []
     parts.shift()
-    const f = m => {
+    const require = m => {
       if (core.has(m)) return baseRequire(m)
-      const filename = f.resolve(m)
+      const filename = require.resolve(m)
       const o = modules.get(filename)
       if (o) return o.exports
       const module = {
@@ -188,15 +188,15 @@ const JS_START = '~' + function(baseRequire, core) {
         children: [],
         exports: {},
       }
-      module.require = require(module)
+      module.require = makeRequire(module)
       module.require.main = self ? self.require.main : module
       modules.set(filename, module)
       fns.get(filename)(module, module.exports, module.require)
       module.loaded = true
       return module.exports
     }
-    f.main = self
-    f.resolve = n => {
+    require.main = self
+    require.resolve = n => {
       if (n[0] === '.' || n[0] === '/') {
         const p = resolvePath(n[0] === '.' ? resolve(self.filename, '../'+n) : n)
         if (p) return p
@@ -220,7 +220,7 @@ const JS_START = '~' + function(baseRequire, core) {
       if (fns.has(b+'.js')) return b+'.js'
       if (fns.has(b+'.json')) return b+'.json'
     }
-    return f
+    return require
   }
 }.toString().slice(0, -1)
 const JS_END = '\n}.call(this, typeof require === "undefined" ? null : require, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))\n'
