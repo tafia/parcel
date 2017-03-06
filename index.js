@@ -20,9 +20,10 @@ class Parcel {
     process.nextTick(cb, null, {
       js: this.js.bind(this, file),
       map: this.makeMap.bind(this, file),
-      dependencies: () => Array.from(this.files.keys()),
+      dependencies: this.dependencies.bind(this),
     })
   }
+  dependencies() {return Array.from(this.files.keys())}
   js(file) {
     let js = JS_START
     for (const [mod, main] of this.mains) {
