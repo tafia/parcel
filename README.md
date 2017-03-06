@@ -47,7 +47,7 @@ exports.square = x => x * x
 
 That's right, it looks and works just like every other node-style `require()` bundler.
 
-## Want source maps?
+## I want source maps!
 
 Don't pipe.
 
