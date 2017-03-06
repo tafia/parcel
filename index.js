@@ -17,15 +17,47 @@ class Parcel {
         this.generate(file, cb)))
   }
   generate(file, cb) {
-    let mains = ''
+    let js = JS_START
     for (const [mod, main] of this.mains) {
-      mains += `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
+      js += `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
-    let fns = ''
     for (const [file, source] of this.files) {
-      fns += `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n${source}})`
+      js += `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n${source}})`
     }
-    process.nextTick(cb, null, js.replace('__GENERATED__', (mains + fns + `\n  return require(null)(${this.jsPath(file)})`)))
+    js += `\n  return require(null)(${this.jsPath(file)})`
+    js += JS_END
+    process.nextTick(cb, null, {
+      js: js,
+      map: () => {
+        const sourceRoot = path.dirname(file)
+        const map = {
+          version: 3,
+          file: '',
+          sourceRoot: '',
+          sources: Array.from(this.files.keys())
+            .map(f => path.relative(sourceRoot, f)),
+          sourcesContent: Array.from(this.files.values()),
+          names: [],
+        }
+        const prefix = lines(JS_START) + this.mains.size
+        const mappings = Array(prefix)
+        let index = null
+        let line = 0
+        for (const [file, source] of this.files) {
+          mappings.push(undefined)
+          let first = true
+          for (let i = lines(source); i--;) {
+            mappings.push('A' + (first ? (index == null ? 'AAA' : 'C' + vlq(-line) + 'A') : 'ACA'))
+            if (first) line = 0
+            else ++line
+            first = false
+          }
+          ++index
+        }
+        map.mappings = mappings.join(';')
+        return JSON.stringify(map)
+      }
+    })
   }
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
@@ -37,9 +69,8 @@ class Parcel {
     if (!file || this.files.has(file)) return process.nextTick(cb)
     fs.readFile(file, {encoding: 'utf8'}, (e, js) => {
       if (e) return cb(e)
-      if (js[0] === '#') {
-        const i = js.indexOf('\n')
-        js = js.slice(i === -1 ? js.length : i + 1)
+      if (js[0] === '#' && js[1] === '!') {
+        js = '//' + js.slice(2)
       }
       this.files.set(file, js)
       const deps = new Set
@@ -118,7 +149,7 @@ const REQUIRE_RE = /require\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^])
 
 const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'])
 
-const js = '~' + function(baseRequire, core) {
+const JS_START = '~' + function(baseRequire, core) {
   if (!baseRequire) baseRequire = () => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
@@ -191,8 +222,8 @@ const js = '~' + function(baseRequire, core) {
     }
     return f
   }
-__GENERATED__
-}+'.call(this, typeof require === "undefined" ? null : require, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))'
+}.toString().slice(0, -1)
+const JS_END = '\n}.call(this, typeof require === "undefined" ? null : require, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))\n'
 
 function map(it, fn, cb) {
   let i = 0, done = 0, err = false
@@ -209,3 +240,24 @@ function map(it, fn, cb) {
   const length = i
   if (!length) process.nextTick(cb, null, result)
 }
+function lines(s) {
+  const m = s.match(LINE_RE)
+  return m ? m.length + 1 : 1
+}
+const LINE_RE = /\r?\n/g
+
+function vlq(n) {
+  const sign = n < 0
+  if (sign) n = -n
+  let y = (n & 0xf) << 1 | sign
+  let r = n >> 5
+  let s = ''
+  while (r) {
+    y |= 0x20
+    s += B64[y]
+    y = r & 0x1f
+    r >>= 5
+  }
+  return s + B64[y]
+}
+const B64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
