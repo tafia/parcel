@@ -19,7 +19,7 @@ class Parcel {
   generate(file, cb) {
     process.nextTick(cb, null, {
       js: this.js.bind(this, file),
-      map: this.makeMap.bind(this, file),
+      map: this.map.bind(this, file),
       dependencies: this.dependencies.bind(this),
     })
   }
@@ -36,7 +36,7 @@ class Parcel {
     js += JS_END
     return js
   }
-  makeMap(file) {
+  map(file) {
     const sourceRoot = path.dirname(file)
     const map = {
       version: 3,
