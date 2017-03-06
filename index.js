@@ -17,6 +17,13 @@ class Parcel {
         this.generate(file, cb)))
   }
   generate(file, cb) {
+    process.nextTick(cb, null, {
+      js: this.js.bind(this, file),
+      map: this.makeMap.bind(this, file),
+      dependencies: () => Array.from(this.files.keys()),
+    })
+  }
+  js(file) {
     let js = JS_START
     for (const [mod, main] of this.mains) {
       js += `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
@@ -26,11 +33,7 @@ class Parcel {
     }
     js += `\n  return makeRequire(null)(${this.jsPath(file)})`
     js += JS_END
-    process.nextTick(cb, null, {
-      js: js,
-      map: this.makeMap.bind(this, file),
-      dependencies: () => Array.from(this.files.keys()),
-    })
+    return js
   }
   makeMap(file) {
     const sourceRoot = path.dirname(file)
