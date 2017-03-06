@@ -61,36 +61,36 @@ Just pass the output filename as an argument.
 
 real    0m0.225s
 user    0m0.197s
-sys 0m0.031s
+sys     0m0.031s
 > time prcl index.js >parcel.js
 
 real    0m0.077s
 user    0m0.059s
-sys 0m0.017s
+sys     0m0.017s
 
 # on a larger project
 > time browserify src/api-download.js >browserify.js
 
 real    0m2.385s
 user    0m2.459s
-sys 0m0.416s
+sys     0m0.416s
 > time prcl src/api-download.js >parcel.js
 
 real    0m0.204s
 user    0m0.187s
-sys 0m0.083s
+sys     0m0.083s
 
 # want source maps?
 > time browserify -d src/api-download.js -o bundle.js
 
 real    0m3.142s
 user    0m3.060s
-sys 0m0.483s
+sys     0m0.483s
 > time prcl src/api-download.js parcel.js
 
 real    0m0.315s
 user    0m0.281s
-sys 0m0.100s
+sys     0m0.100s
 ```
 
 ---
