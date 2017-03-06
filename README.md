@@ -26,14 +26,14 @@ So don't stand around waiting for your super-cool, magical bundler to do its thi
 Glad you asked! Like this:
 
 ```js
-index.js:
+// index.js:
 'use strict'
 const itt = require('itt')
 const math = require('./math')
 
 console.log(itt.range(10).map(math.square).join(' '))
 
-math.js:
+// math.js:
 'use strict'
 
 exports.square = x => x * x
