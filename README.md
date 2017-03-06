@@ -4,7 +4,7 @@ So I hate JavaScript bundlers.
 
 Don't get me wrong, I love modularizing things, and I love having small files.
 
-What I hate is when I hit ⌘S, ⌘Tab, ⌘R\*, and I, a humble human, beat the super cool magic file system watching bundler running on my my 2.8 GHz processor. I get the old verson, and I have to wait second(s) before I can hit ⌘R again see my changes.
+What I hate is when I hit ⌘S, ⌘Tab, ⌘R\*, and I, a humble human, beat the super-cool, magical, file-system-watching bundler running on my my 2.8 GHz processor. I get the old verson, and I have to wait second(s) before I can hit ⌘R again see my changes.
 
 Parcel is a JavaScript bundler. But I never beat it. Why?
 
@@ -19,7 +19,7 @@ It has a few extra rules that let it be really fast:
 
 (You really shouldn't be doing any of that anyway.)
 
-So don't stand around waiting for your super cool magic bundler to do its thing. Use Parcel while you're developing, and use your super cool magic (really slow) bundler for releases.
+So don't stand around waiting for your super-cool, magical bundler to do its thing. Use Parcel while you're developing, and use your super-cool, magical, really slow bundler for releases.
 
 ## How do I use it?
 
