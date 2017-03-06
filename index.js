@@ -28,37 +28,38 @@ class Parcel {
     js += JS_END
     process.nextTick(cb, null, {
       js: js,
-      map: () => {
-        const sourceRoot = path.dirname(file)
-        const map = {
-          version: 3,
-          file: '',
-          sourceRoot: '',
-          sources: Array.from(this.files.keys())
-            .map(f => path.relative(sourceRoot, f)),
-          sourcesContent: Array.from(this.files.values()),
-          names: [],
-        }
-        const prefix = lines(JS_START) + this.mains.size
-        const mappings = Array(prefix)
-        let index = null
-        let line = 0
-        for (const [file, source] of this.files) {
-          mappings.push(undefined)
-          let first = true
-          for (let i = lines(source); i--;) {
-            mappings.push('A' + (first ? (index == null ? 'AAA' : 'C' + vlq(-line) + 'A') : 'ACA'))
-            if (first) line = 0
-            else ++line
-            first = false
-          }
-          ++index
-        }
-        mappings.push('ACAA')
-        map.mappings = mappings.join(';')
-        return JSON.stringify(map)
-      }
+      map: this.makeMap.bind(this, file),
     })
+  }
+  makeMap(file) {
+    const sourceRoot = path.dirname(file)
+    const map = {
+      version: 3,
+      file: '',
+      sourceRoot: '',
+      sources: Array.from(this.files.keys())
+        .map(f => path.relative(sourceRoot, f)),
+      sourcesContent: Array.from(this.files.values()),
+      names: [],
+    }
+    const prefix = lines(JS_START) + this.mains.size
+    const mappings = Array(prefix)
+    let index = null
+    let line = 0
+    for (const [file, source] of this.files) {
+      mappings.push(undefined)
+      let first = true
+      for (let i = lines(source); i--;) {
+        mappings.push('A' + (first ? (index == null ? 'AAA' : 'C' + vlq(-line) + 'A') : 'ACA'))
+        if (first) line = 0
+        else ++line
+        first = false
+      }
+      ++index
+    }
+    mappings.push('ACAA')
+    map.mappings = mappings.join(';')
+    return JSON.stringify(map)
   }
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
