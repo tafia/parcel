@@ -148,7 +148,7 @@ class Parcel {
   }
 }
 
-const REQUIRE_RE = /require\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^])*)")\s*\)/g
+const REQUIRE_RE = /\brequire\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^])*)")\s*\)/g
 
 const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'])
 
