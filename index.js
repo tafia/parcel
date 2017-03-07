@@ -1,6 +1,7 @@
 'use strict'
 const path = require('path')
 const fs = require('fs')
+const {Readable} = require('stream')
 
 module.exports = (file, cb) =>
   fs.realpath(file, (e, file) => e ? cb(e) : new Parcel().bundle(file, cb))
@@ -20,17 +21,26 @@ class Parcel {
       }))
   }
   dependencies() {return Array.from(this.files.keys())}
-  js() {
-    let js = JS_START
+  js(end) {
+    const js = new Readable
+    const it = this.jsGen(end)
+    js._read = () => js.push(it.next().value)
+    return js
+  }
+  *jsGen(end) {
+    yield JS_START
     for (const [mod, main] of this.mains) {
-      js += `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
+      yield `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
     for (const [file, source] of this.files) {
-      js += `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n${source}})`
+      yield `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n`
+      yield source
+      yield `})`
     }
-    js += `\n  return makeRequire(null)(${this.jsPath(this.main)})`
-    js += JS_END
-    return js
+    yield `\n  return makeRequire(null)(${this.jsPath(this.main)})`
+    yield JS_END
+    if (end) yield end
+    yield null
   }
   map() {
     const sourceRoot = path.dirname(this.main)
