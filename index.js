@@ -140,11 +140,11 @@ class Parcel {
   resolvePath(base, cb) {
     const indexJS = path.join(base, 'index.js')
     const indexJSON = path.join(base, 'index.json')
-    this.exists(indexJS, t => t ? cb(null, indexJS) :
-    this.exists(indexJSON, t => t ? cb(null, indexJSON) :
     this.exists(base, t => t ? cb(null, base) :
     this.exists(base+'.js', t => t ? cb(null, base+'.js') :
+    this.exists(indexJS, t => t ? cb(null, indexJS) :
     this.exists(base+'.json', t => t ? cb(null, base+'.json') :
+    this.exists(indexJSON, t => t ? cb(null, indexJSON) :
     cb(new Error))))))
   }
   exists(file, cb) {
