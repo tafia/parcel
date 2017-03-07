@@ -75,9 +75,6 @@ class Parcel {
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
   }
-  require(parent, name, cb) {
-    this.resolve(parent, name, (e, file) => e ? cb(e) : this.include(file, cb))
-  }
   include(file, cb) {
     if (!file || this.files.has(file)) return process.nextTick(cb)
     fs.readFile(file, {encoding: 'utf8'}, (e, js) => {
