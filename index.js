@@ -42,6 +42,9 @@ class Parcel {
     if (end) yield end
     yield null
   }
+  jsPath(p) {
+    return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
+  }
   map() {
     const sourceRoot = path.dirname(this.main)
     const map = {
@@ -71,9 +74,6 @@ class Parcel {
     mappings.push('ACAA')
     map.mappings = mappings.join(';')
     return JSON.stringify(map)
-  }
-  jsPath(p) {
-    return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
   }
   include(file, cb) {
     if (!file || this.files.has(file)) return process.nextTick(cb)
