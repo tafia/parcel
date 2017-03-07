@@ -74,6 +74,10 @@ generate parcel.js in 3.170847 ms
 real    0m0.225s
 user    0m0.197s
 sys     0m0.031s
+> time node fuse-box.js
+real    0m0.373s
+user    0m0.324s
+sys     0m0.051s
 > time prcl index.js >parcel.js
 real    0m0.077s
 user    0m0.059s
