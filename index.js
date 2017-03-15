@@ -201,6 +201,7 @@ const JS_START = '~' + function(global) {
       module.require = Parcel.makeRequire(module)
       module.require.main = self ? self.require.main : module
       Parcel.modules.set(filename, module)
+      if (self) self.children.push(module)
       Parcel.fns.get(filename)(module, module.exports, module.require)
       module.loaded = true
       return module.exports
