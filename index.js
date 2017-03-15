@@ -123,7 +123,7 @@ class Parcel {
   }
   resolvePathOrModule(base, cb) {
     const m = this.mains.get(base)
-    if (m) return cb(null, m)
+    if (m) return process.nextTick(cb, null, m)
     const pkg = path.join(base, 'package.json')
     fs.readFile(pkg, (e, j) => {
       if (j) {
