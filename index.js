@@ -260,7 +260,7 @@ function vlq(n) {
   const sign = n < 0
   if (sign) n = -n
   let y = (n & 0xf) << 1 | sign
-  let r = n >> 5
+  let r = n >> 4
   let s = ''
   while (r) {
     y |= 0x20
