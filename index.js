@@ -29,17 +29,17 @@ class Parcel {
   }
   *jsGen(end) {
     yield JS_START
-    yield `\n  const CORE_MODULES = new Set(${JSON.stringify([...CORE_MODULES])})`
+    yield `\n  Parcel.CORE_MODULES = new Set(${JSON.stringify([...CORE_MODULES])})`
     for (const [mod, main] of this.mains) {
-      yield `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
+      yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
     for (const [file, source] of this.files) {
       const id = this.namePath(file)
-      yield `\n  fns.set(${this.jsPath(file)}, ${id}); function ${id}(module, exports, require) {\n`
+      yield `\n  Parcel.fns.set(${this.jsPath(file)}, ${id}); function ${id}(module, exports, require) {\n`
       yield source
       yield `}`
     }
-    yield `\n  return makeRequire(null)(${this.jsPath(this.main)})`
+    yield `\n  return Parcel.makeRequire(null)(${this.jsPath(this.main)})`
     yield JS_END
     if (end) yield end
     yield null
@@ -166,20 +166,14 @@ const REQUIRE_RE = /\brequire\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^
 const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'])
 
 const JS_START = '~' + function(global) {
-  const baseRequire = typeof require !== "undefined" ? require : () => {
+  const Parcel = {}
+  Parcel.baseRequire = typeof require !== "undefined" ? require : () => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
-  const modules = new Map
-  const fns = new Map
-  const mains = new Map
-  const stack = []
-  const dirname = file => {
-    file = file.split('/')
-    file.shift()
-    file.pop()
-    return '/' + file.join('/')
-  }
-  const resolve = (base, then) => {
+  Parcel.modules = new Map
+  Parcel.fns = new Map
+  Parcel.mains = new Map
+  Parcel.resolve = (base, then) => {
     base = base.split('/')
     base.shift()
     for (const p of then.split('/')) {
@@ -188,13 +182,13 @@ const JS_START = '~' + function(global) {
     }
     return '/' + base.join('/')
   }
-  const makeRequire = self => {
+  Parcel.makeRequire = self => {
     const parts = self ? self.filename.split('/') : []
     parts.shift()
     const require = m => {
-      if (CORE_MODULES.has(m)) return baseRequire(m)
+      if (Parcel.CORE_MODULES.has(m)) return baseRequire(m)
       const filename = require.resolve(m)
-      const o = modules.get(filename)
+      const o = Parcel.modules.get(filename)
       if (o) return o.exports
       const module = {
         filename,
@@ -204,17 +198,17 @@ const JS_START = '~' + function(global) {
         children: [],
         exports: {},
       }
-      module.require = makeRequire(module)
+      module.require = Parcel.makeRequire(module)
       module.require.main = self ? self.require.main : module
-      modules.set(filename, module)
-      fns.get(filename)(module, module.exports, module.require)
+      Parcel.modules.set(filename, module)
+      Parcel.fns.get(filename)(module, module.exports, module.require)
       module.loaded = true
       return module.exports
     }
     require.main = self
     require.resolve = n => {
       if (n[0] === '.' || n[0] === '/') {
-        const p = resolvePath(n[0] === '.' ? resolve(self.filename, '../'+n) : n)
+        const p = resolvePath(n[0] === '.' ? Parcel.resolve(self.filename, '../'+n) : n)
         if (p) return p
       } else {
         const p = parts.slice()
@@ -228,13 +222,13 @@ const JS_START = '~' + function(global) {
       throw new Error(`Could not resolve module name: ${n}`)
     }
     const resolvePath = b => {
-      const m = mains.get(b)
+      const m = Parcel.mains.get(b)
       if (m) return m
-      if (fns.has(b+'/index.js')) return b+'/index.js'
-      if (fns.has(b+'/index.json')) return b+'/index.json'
-      if (fns.has(b)) return b
-      if (fns.has(b+'.js')) return b+'.js'
-      if (fns.has(b+'.json')) return b+'.json'
+      if (Parcel.fns.has(b+'/index.js')) return b+'/index.js'
+      if (Parcel.fns.has(b+'/index.json')) return b+'/index.json'
+      if (Parcel.fns.has(b)) return b
+      if (Parcel.fns.has(b+'.js')) return b+'.js'
+      if (Parcel.fns.has(b+'.json')) return b+'.json'
     }
     return require
   }
