@@ -34,14 +34,18 @@ class Parcel {
       yield `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
     for (const [file, source] of this.files) {
-      yield `\n  fns.set(${this.jsPath(file)}, function(module, exports, require) {\n`
+      const id = this.namePath(file)
+      yield `\n  fns.set(${this.jsPath(file)}, ${id}); function ${id}(module, exports, require) {\n`
       yield source
-      yield `})`
+      yield `}`
     }
     yield `\n  return makeRequire(null)(${this.jsPath(this.main)})`
     yield JS_END
     if (end) yield end
     yield null
+  }
+  namePath(p) {
+    return 'file_' + p.replace(/\W/g, s => '$' + s.charCodeAt(0).toString(16))
   }
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
