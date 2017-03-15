@@ -56,14 +56,14 @@ class Parcel {
       sourcesContent: Array.from(this.files.values()),
       names: [],
     }
-    const prefix = lines(JS_START) + this.mains.size
+    const prefix = lineCount(JS_START) + this.mains.size
     const mappings = Array(prefix)
     let index = null
     let line = 0
     for (const [file, source] of this.files) {
       mappings.push(undefined)
       let first = true
-      for (let i = lines(source); i--;) {
+      for (let i = lineCount(source); i--;) {
         mappings.push('A' + (first ? (index == null ? 'AAA' : 'C' + vlq(-line) + 'A') : 'ACA'))
         if (first) line = 0
         else ++line
@@ -250,11 +250,11 @@ function map(it, fn, cb) {
   const length = i
   if (!length) process.nextTick(cb, null, result)
 }
-function lines(s) {
+function lineCount(s) {
   const m = s.match(LINE_RE)
   return m ? m.length + 1 : 1
 }
-const LINE_RE = /\r?\n/g
+const LINE_RE = /\n/g
 
 function vlq(n) {
   const sign = n < 0
