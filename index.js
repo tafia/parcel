@@ -160,7 +160,7 @@ const REQUIRE_RE = /\brequire\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^
 
 const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'])
 
-const JS_START = '~' + function(baseRequire, core) {
+const JS_START = '~' + function(global, baseRequire, core) {
   if (!baseRequire) baseRequire = () => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
@@ -234,7 +234,7 @@ const JS_START = '~' + function(baseRequire, core) {
     return require
   }
 }.toString().slice(0, -1)
-const JS_END = '\n}.call(this, typeof require === "undefined" ? null : require, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))\n'
+const JS_END = '\n}(typeof global !== "undefined" ? global : typeof window !== "undefined" ? window : this, typeof require === "undefined" ? null : require, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))\n'
 
 function map(it, fn, cb) {
   let i = 0, done = 0, err = false
