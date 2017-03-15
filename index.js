@@ -29,6 +29,7 @@ class Parcel {
   }
   *jsGen(end) {
     yield JS_START
+    yield `\n  const CORE_MODULES = new Set(${JSON.stringify([...CORE_MODULES])})`
     for (const [mod, main] of this.mains) {
       yield `\n  mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
@@ -56,7 +57,7 @@ class Parcel {
       sourcesContent: Array.from(this.files.values()),
       names: [],
     }
-    const prefix = lineCount(JS_START) + this.mains.size
+    const prefix = lineCount(JS_START) + 1 + this.mains.size
     const mappings = Array(prefix)
     let index = null
     let line = 0
@@ -160,7 +161,7 @@ const REQUIRE_RE = /\brequire\s*\(\s*(?:'((?:[^'\n]+|\\[^])*)'|"((?:[^"\n]+|\\[^
 
 const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https', 'net', 'os', 'path', 'punycode', 'querystring', 'readline', 'stream', 'string_decoder', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'zlib'])
 
-const JS_START = '~' + function(global, core) {
+const JS_START = '~' + function(global) {
   const baseRequire = typeof require !== "undefined" ? require : () => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
@@ -187,7 +188,7 @@ const JS_START = '~' + function(global, core) {
     const parts = self ? self.filename.split('/') : []
     parts.shift()
     const require = m => {
-      if (core.has(m)) return baseRequire(m)
+      if (CORE_MODULES.has(m)) return baseRequire(m)
       const filename = require.resolve(m)
       const o = modules.get(filename)
       if (o) return o.exports
@@ -234,7 +235,7 @@ const JS_START = '~' + function(global, core) {
     return require
   }
 }.toString().slice(0, -1)
-const JS_END = '\n}(typeof global !== "undefined" ? global : typeof window !== "undefined" ? window : this, new Set('+JSON.stringify(Array.from(CORE_MODULES))+'))\n'
+const JS_END = '\n}(typeof global !== "undefined" ? global : typeof window !== "undefined" ? window : this)\n'
 
 function map(it, fn, cb) {
   let i = 0, done = 0, err = false
