@@ -45,7 +45,7 @@ class Parcel {
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
   }
-  map() {
+  map(end = '') {
     const sourceRoot = path.dirname(this.main)
     const map = {
       version: 3,
@@ -71,7 +71,8 @@ class Parcel {
       }
       ++index
     }
-    mappings.push('ACAA')
+    mappings.push(undefined)
+    mappings.push(...Array(lineCount(JS_END + end) - 1))
     map.mappings = mappings.join(';')
     return JSON.stringify(map)
   }
