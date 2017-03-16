@@ -210,7 +210,7 @@ const JS_START = '~' + function(global) {
     parts.shift()
     const require = m => {
       const filename = require.resolve(m)
-      if (filename === null) return baseRequire(m)
+      if (filename === null) return Parcel.baseRequire(m)
       const o = Parcel.modules.get(filename)
       if (o) return o.exports
       const module = new Parcel.Module(filename, self)
