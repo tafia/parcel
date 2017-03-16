@@ -6,6 +6,10 @@ const {Readable} = require('stream')
 module.exports = (file, cb) =>
   fs.realpath(file, (e, file) => e ? cb(e) : new Parcel().bundle(file, cb))
 
+class RequireError extends Error {}
+
+module.exports.RequireError = RequireError
+
 class Parcel {
   constructor() {
     this.files = new Map
@@ -119,7 +123,7 @@ class Parcel {
   }
   resolve(parent, name, cb) {
     const nope = () =>
-      cb(new Error(`Could not resolve module name: ${name} in ${parent}`))
+      cb(new RequireError(`Could not resolve module name: ${name} in ${parent}`))
     if (name[0] === '.' || name[0] === '/') {
       const p = name[0] === '.' ? path.resolve(parent, '..', name) : name
       this.resolvePathOrModule(p, (e, file) => e ? nope() : cb(null, file))
@@ -135,7 +139,7 @@ class Parcel {
         this.resolvePathOrModule(k, (e, file) => e ? next() : cb(null, file))
       }
       process.nextTick(next)
-    } else process.nextTick(cb, new Error('Main module must be a file path'))
+    } else process.nextTick(cb, new RequireError('Main module must be a file path'))
   }
   resolvePathOrModule(base, cb) {
     const m = this.mains.get(base)
