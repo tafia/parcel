@@ -46,7 +46,10 @@ class Parcel {
     yield null
   }
   namePath(p) {
-    return 'file_' + p.replace(/\W/g, s => '$' + s.charCodeAt(0).toString(16))
+    return 'file_' + p.replace(/\W/g, s => {
+      const n = s.charCodeAt(0).toString(16)
+      return '$' + '0000'.slice(n.length) + n
+    })
   }
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
