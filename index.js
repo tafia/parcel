@@ -195,6 +195,16 @@ const JS_START = '~' + function(global) {
     }
     return '/' + base.join('/')
   }
+  Parcel.Module = class Module {
+    constructor(filename, parent) {
+      this.filename = filename
+      this.id = filename
+      this.loaded = false
+      this.parent = parent
+      this.children = []
+      this.exports = {}
+    }
+  }
   Parcel.makeRequire = self => {
     const parts = self ? self.filename.split('/') : []
     parts.shift()
@@ -203,14 +213,7 @@ const JS_START = '~' + function(global) {
       if (filename === null) return baseRequire(m)
       const o = Parcel.modules.get(filename)
       if (o) return o.exports
-      const module = {
-        filename,
-        id: filename,
-        loaded: false,
-        parent: self,
-        children: [],
-        exports: {},
-      }
+      const module = new Parcel.Module(filename, self)
       const {deps, make} = Parcel.files.get(filename)
       module.require = Parcel.makeRequire(module)
       module.require.deps = deps
