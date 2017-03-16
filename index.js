@@ -40,7 +40,8 @@ class Parcel {
       yield info.source
       yield `}`
     }
-    yield `\n  return Parcel.makeRequire(null)(${this.jsPath(this.main)})`
+    yield `\n  Parcel.main = Parcel.makeRequire(null)(${this.jsPath(this.main)})`
+    yield `\n  if (typeof module !== 'undefined') module.exports = Parcel.main`
     yield JS_END
     if (end) yield end
     yield null
@@ -83,8 +84,7 @@ class Parcel {
       }
       ++index
     }
-    mappings.push(undefined)
-    mappings.push(...Array(lineCount(JS_END + end) - 1))
+    mappings.push(...Array(2 + lineCount(JS_END + end) - 1))
     map.mappings = mappings.join(';')
     return JSON.stringify(map)
   }
