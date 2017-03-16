@@ -35,7 +35,8 @@ class Parcel {
     }
     for (const [file, source] of this.files) {
       const id = this.namePath(file)
-      yield `\n  Parcel.fns.set(${this.jsPath(file)}, ${id}); function ${id}(module, exports, require) {\n`
+      const prefix = file.endsWith('.json') ? 'module.exports =' : ''
+      yield `\n  Parcel.fns.set(${this.jsPath(file)}, ${id}); function ${id}(module, exports, require) {${prefix}\n`
       yield source
       yield `}`
     }
