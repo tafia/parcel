@@ -32,8 +32,7 @@ class Parcel {
     for (const [mod, main] of this.mains) {
       yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
-    const sortedFiles = [...this.files].sort((a, b) => a[0].localeCompare(b[0]))
-    for (const [file, info] of sortedFiles) {
+    for (const [file, info] of this.sortedFiles()) {
       const id = this.namePath(file)
       const prefix = file.endsWith('.json') ? 'module.exports =' : ''
       const deps = this.stringifyMap(info.deps)
@@ -46,6 +45,9 @@ class Parcel {
     yield JS_END
     if (end) yield end
     yield null
+  }
+  sortedFiles() {
+    return this._sortedFiles || (this._sortedFiles = [...this.files].sort((a, b) => a[0].localeCompare(b[0])))
   }
   namePath(p) {
     return 'file_' + p.replace(/\W/g, s => {
@@ -61,20 +63,21 @@ class Parcel {
   }
   map(end = '') {
     const sourceRoot = path.dirname(this.main)
+    const sortedFiles = this.sortedFiles()
     const map = {
       version: 3,
       file: '',
       sourceRoot: '',
-      sources: Array.from(this.files.keys())
+      sources: Array.from(sortedFiles, a => a[0])
         .map(f => path.relative(sourceRoot, f)),
-      sourcesContent: Array.from(this.files.values(), info => info.source),
+      sourcesContent: Array.from(sortedFiles, a => a[1].source),
       names: [],
     }
     const prefix = lineCount(JS_START) + this.mains.size
     const mappings = Array(prefix)
     let index = null
     let line = 0
-    for (const [file, {source}] of this.files) {
+    for (const [file, {source}] of sortedFiles) {
       mappings.push(undefined)
       let first = true
       for (let i = lineCount(source); i--;) {
