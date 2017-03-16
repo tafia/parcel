@@ -29,7 +29,6 @@ class Parcel {
   }
   *jsGen(end) {
     yield JS_START
-    yield `\n  Parcel.CORE_MODULES = new Set(${JSON.stringify([...CORE_MODULES])})`
     for (const [mod, main] of this.mains) {
       yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
@@ -66,7 +65,7 @@ class Parcel {
       sourcesContent: Array.from(this.files.values(), info => info.source),
       names: [],
     }
-    const prefix = lineCount(JS_START) + 1 + this.mains.size
+    const prefix = lineCount(JS_START) + this.mains.size
     const mappings = Array(prefix)
     let index = null
     let line = 0
