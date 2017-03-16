@@ -32,7 +32,8 @@ class Parcel {
     for (const [mod, main] of this.mains) {
       yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
     }
-    for (const [file, info] of this.files) {
+    const sortedFiles = [...this.files].sort((a, b) => a[0].localeCompare(b[0]))
+    for (const [file, info] of sortedFiles) {
       const id = this.namePath(file)
       const prefix = file.endsWith('.json') ? 'module.exports =' : ''
       const deps = this.stringifyMap(info.deps)
