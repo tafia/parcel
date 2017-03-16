@@ -1,7 +1,7 @@
 {
   "name": "prcl",
   "bin": "lib/cli.js",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Parcel: the anti-bundler.",
   "main": "index.js",
   "author": "Nathan",
