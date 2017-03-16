@@ -180,7 +180,7 @@ const CORE_MODULES = new Set(['assert', 'buffer', 'child_process', 'cluster', 'c
 
 const JS_START = '~' + function(global) {
   const Parcel = {}
-  Parcel.baseRequire = typeof require !== "undefined" ? require : () => {
+  Parcel.baseRequire = typeof require !== "undefined" ? require : n => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
   Parcel.modules = new Map
