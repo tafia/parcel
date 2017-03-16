@@ -241,7 +241,7 @@ const JS_START = '~' + function(global) {
           if (r) return r
         }
       }
-      throw new Error(`Could not resolve module name: ${n}`)
+      return null
     }
     const resolvePath = b => {
       const m = Parcel.mains.get(b)
