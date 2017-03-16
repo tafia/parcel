@@ -61,15 +61,14 @@ class Parcel {
   stringifyMap(m) {
     return 'new Map(' + JSON.stringify(Array.from(m)) + ')'
   }
-  map(end = '') {
-    const sourceRoot = path.dirname(this.main)
+  map(end = '', dir = path.dirname(this.main)) {
     const sortedFiles = this.sortedFiles()
     const map = {
       version: 3,
       file: '',
       sourceRoot: '',
       sources: Array.from(sortedFiles, a => a[0])
-        .map(f => path.relative(sourceRoot, f)),
+        .map(f => path.relative(dir, f)),
       sourcesContent: Array.from(sortedFiles, a => a[1].source),
       names: [],
     }
