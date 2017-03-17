@@ -231,20 +231,20 @@ const JS_START = '~' + function(global) {
   Parcel.makeRequire = self => {
     let parts
     const require = m => {
-      let dep = self ? require.deps[m] : Parcel.main
-      if (dep === undefined) {
+      let fn = self ? require.deps[m] : Parcel.main
+      if (fn === undefined) {
         const filename = require.resolve(m)
-        dep = filename !== null ? Parcel.files[filename] : null
+        fn = filename !== null ? Parcel.files[filename] : null
       }
-      if (dep === null) return Parcel.baseRequire(m)
-      if (dep.module) return dep.module.exports
-      const module = new Parcel.Module(dep.filename, self)
-      dep.module = module
+      if (fn === null) return Parcel.baseRequire(m)
+      if (fn.module) return fn.module.exports
+      const module = new Parcel.Module(fn.filename, self)
+      fn.module = module
       module.require = Parcel.makeRequire(module)
-      module.require.deps = dep.deps
+      module.require.deps = fn.deps
       module.require.main = self ? self.require.main : module
       if (self) self.children.push(module)
-      dep(module, module.exports, module.require)
+      fn(module, module.exports, module.require)
       module.loaded = true
       return module.exports
     }
