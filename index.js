@@ -34,13 +34,13 @@ class Parcel {
   *jsGen(end) {
     yield JS_START
     for (const [mod, main] of this.mains) {
-      yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
+      yield `\n  Parcel.mains[${this.jsPath(mod)}] = ${this.jsPath(main)}`
     }
     for (const [file, info] of this.sortedFiles()) {
       const id = this.namePath(file)
       const prefix = file.endsWith('.json') ? 'module.exports =' : ''
       const deps = this.stringifyMap(info.deps)
-      yield `\n  Parcel.files.set(${this.jsPath(file)}, {deps: ${deps}, make: ${id}}); function ${id}(module, exports, require) {${prefix}\n`
+      yield `\n  Parcel.files[${this.jsPath(file)}] = {deps: ${deps}, make: ${id}}; function ${id}(module, exports, require) {${prefix}\n`
       yield info.source
       yield `}`
     }
@@ -63,7 +63,12 @@ class Parcel {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
   }
   stringifyMap(m) {
-    return 'new Map(' + JSON.stringify(Array.from(m)) + ')'
+    const o = Object.create(null)
+    for (const [k, v] of m) {
+      o[k] = v
+    }
+    return JSON.stringify(o)
+    // return 'new Map(' + JSON.stringify(Array.from(m)) + ')'
   }
   map(end = '', dir = path.dirname(this.main)) {
     const sortedFiles = this.sortedFiles()
@@ -190,9 +195,9 @@ const JS_START = '~' + function(global) {
   Parcel.baseRequire = typeof require !== "undefined" ? require : n => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
-  Parcel.modules = new Map
-  Parcel.files = new Map
-  Parcel.mains = new Map
+  Parcel.modules = {}
+  Parcel.files = {}
+  Parcel.mains = {}
   Parcel.resolve = (base, then) => {
     base = base.split('/')
     base.shift()
@@ -218,14 +223,14 @@ const JS_START = '~' + function(global) {
     const require = m => {
       const filename = require.resolve(m)
       if (filename === null) return Parcel.baseRequire(m)
-      const o = Parcel.modules.get(filename)
+      const o = Parcel.modules[filename]
       if (o) return o.exports
       const module = new Parcel.Module(filename, self)
-      const {deps, make} = Parcel.files.get(filename)
+      const {deps, make} = Parcel.files[filename]
       module.require = Parcel.makeRequire(module)
       module.require.deps = deps
       module.require.main = self ? self.require.main : module
-      Parcel.modules.set(filename, module)
+      Parcel.modules[filename] = module
       if (self) self.children.push(module)
       make(module, module.exports, module.require)
       module.loaded = true
@@ -235,7 +240,7 @@ const JS_START = '~' + function(global) {
     require.main = self
     require.resolve = n => {
       if (!self) return n
-      const dep = require.deps.get(n)
+      const dep = require.deps[n]
       if (dep !== undefined) return dep
       if (n[0] === '.' || n[0] === '/') {
         const p = resolvePath(n[0] === '.' ? Parcel.resolve(self.filename, '../'+n) : n)
@@ -252,13 +257,13 @@ const JS_START = '~' + function(global) {
       return null
     }
     const resolvePath = b => {
-      const m = Parcel.mains.get(b)
+      const m = Parcel.mains[b]
       if (m) return m
-      if (Parcel.files.has(b+'/index.js')) return b+'/index.js'
-      if (Parcel.files.has(b+'/index.json')) return b+'/index.json'
-      if (Parcel.files.has(b)) return b
-      if (Parcel.files.has(b+'.js')) return b+'.js'
-      if (Parcel.files.has(b+'.json')) return b+'.json'
+      if (Parcel.files[b+'/index.js']) return b+'/index.js'
+      if (Parcel.files[b+'/index.json']) return b+'/index.json'
+      if (Parcel.files[b]) return b
+      if (Parcel.files[b+'.js']) return b+'.js'
+      if (Parcel.files[b+'.json']) return b+'.json'
     }
     return require
   }
