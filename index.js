@@ -234,6 +234,7 @@ const JS_START = '~' + function(global) {
     require.deps = new Map
     require.main = self
     require.resolve = n => {
+      if (!self) return n
       const dep = require.deps.get(n)
       if (dep !== undefined) return dep
       if (n[0] === '.' || n[0] === '/') {
