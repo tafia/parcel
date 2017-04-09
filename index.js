@@ -34,17 +34,19 @@ class Parcel {
   *jsGen(end) {
     yield JS_START
     for (const [mod, main] of this.mains) {
-      yield `\n  Parcel.mains.set(${this.jsPath(mod)}, ${this.jsPath(main)})`
+      yield `\n  Parcel.mains[${this.jsPath(mod)}] = ${this.jsPath(main)}`
     }
     for (const [file, info] of this.sortedFiles()) {
       const id = this.namePath(file)
       const prefix = file.endsWith('.json') ? 'module.exports =' : ''
-      const deps = this.stringifyMap(info.deps)
-      yield `\n  Parcel.files.set(${this.jsPath(file)}, {deps: ${deps}, make: ${id}}); function ${id}(module, exports, require) {${prefix}\n`
+      const deps = this.stringifyDeps(info.deps)
+      const filename = this.jsPath(file)
+      yield `\n  Parcel.files[${filename}] = ${id}; ${id}.deps = ${deps}; ${id}.filename = ${filename}; function ${id}(module, exports, require) {${prefix}\n`
       yield info.source
       yield `}`
     }
-    yield `\n  Parcel.main = Parcel.makeRequire(null)(${this.jsPath(this.main)})`
+    const main = this.namePath(this.main)
+    yield `\n  Parcel.main = ${main}; Parcel.makeRequire(null)()`
     yield `\n  if (typeof module !== 'undefined') module.exports = Parcel.main`
     yield JS_END
     if (end) yield end
@@ -62,8 +64,24 @@ class Parcel {
   jsPath(p) {
     return JSON.stringify(p[0] === '/' ? p : '/' + p.replace(/\\/g, '/'))
   }
-  stringifyMap(m) {
-    return 'new Map(' + JSON.stringify(Array.from(m)) + ')'
+  stringifyDeps(m) {
+    let s = '{'
+    let comma = false
+    for (const [k, v] of m) {
+      if (comma) s += ','
+      s += JSON.stringify(k)
+      s += ':'
+      s += this.namePath(v)
+      comma = true
+    }
+    s += '}'
+    return s
+    // const o = Object.create(null)
+    // for (const [k, v] of m) {
+    //   o[k] = v
+    // }
+    // return JSON.stringify(o)
+    // return 'new Map(' + JSON.stringify(Array.from(m)) + ')'
   }
   map(end = '', dir = path.dirname(this.main)) {
     const sortedFiles = this.sortedFiles()
@@ -190,9 +208,9 @@ const JS_START = '~' + function(global) {
   Parcel.baseRequire = typeof require !== "undefined" ? require : n => {
     throw new Error(`Could not resolve module name: ${n}`)
   }
-  Parcel.modules = new Map
-  Parcel.files = new Map
-  Parcel.mains = new Map
+  Parcel.modules = {}
+  Parcel.files = {}
+  Parcel.mains = {}
   Parcel.resolve = (base, then) => {
     base = base.split('/')
     base.shift()
@@ -202,45 +220,46 @@ const JS_START = '~' + function(global) {
     }
     return '/' + base.join('/')
   }
-  Parcel.Module = class Module {
-    constructor(filename, parent) {
-      this.filename = filename
-      this.id = filename
-      this.loaded = false
-      this.parent = parent
-      this.children = []
-      this.exports = {}
-    }
+  Parcel.Module = function Module(filename, parent) {
+    this.filename = filename
+    this.id = filename
+    this.loaded = false
+    this.parent = parent
+    this.children = []
+    this.exports = {}
   }
   Parcel.makeRequire = self => {
-    const parts = self ? self.filename.split('/') : []
-    parts.shift()
+    let parts
     const require = m => {
-      const filename = require.resolve(m)
-      if (filename === null) return Parcel.baseRequire(m)
-      const o = Parcel.modules.get(filename)
-      if (o) return o.exports
-      const module = new Parcel.Module(filename, self)
-      const {deps, make} = Parcel.files.get(filename)
+      let fn = self ? require.deps[m] : Parcel.main
+      if (fn === undefined) {
+        const filename = require.resolve(m)
+        fn = filename !== null ? Parcel.files[filename] : null
+      }
+      if (fn === null) return Parcel.baseRequire(m)
+      if (fn.module) return fn.module.exports
+      const module = new Parcel.Module(fn.filename, self)
+      fn.module = module
       module.require = Parcel.makeRequire(module)
-      module.require.deps = deps
+      module.require.deps = fn.deps
       module.require.main = self ? self.require.main : module
-      Parcel.modules.set(filename, module)
       if (self) self.children.push(module)
-      make(module, module.exports, module.require)
+      fn(module, module.exports, module.require)
       module.loaded = true
       return module.exports
     }
-    require.deps = new Map
+    require.deps = {}
     require.main = self
     require.resolve = n => {
       if (!self) return n
-      const dep = require.deps.get(n)
-      if (dep !== undefined) return dep
       if (n[0] === '.' || n[0] === '/') {
         const p = resolvePath(n[0] === '.' ? Parcel.resolve(self.filename, '../'+n) : n)
         if (p) return p
       } else {
+        if (!parts) {
+          parts = self ? self.filename.split('/') : []
+          parts.shift()
+        }
         const p = parts.slice()
         while (p.length) {
           p.pop()
@@ -252,13 +271,13 @@ const JS_START = '~' + function(global) {
       return null
     }
     const resolvePath = b => {
-      const m = Parcel.mains.get(b)
+      const m = Parcel.mains[b]
       if (m) return m
-      if (Parcel.files.has(b+'/index.js')) return b+'/index.js'
-      if (Parcel.files.has(b+'/index.json')) return b+'/index.json'
-      if (Parcel.files.has(b)) return b
-      if (Parcel.files.has(b+'.js')) return b+'.js'
-      if (Parcel.files.has(b+'.json')) return b+'.json'
+      if (Parcel.files[b+'/index.js']) return b+'/index.js'
+      if (Parcel.files[b+'/index.json']) return b+'/index.json'
+      if (Parcel.files[b]) return b
+      if (Parcel.files[b+'.js']) return b+'.js'
+      if (Parcel.files[b+'.json']) return b+'.json'
     }
     return require
   }
