@@ -47,7 +47,7 @@ class Parcel {
     }
     const main = this.namePath(this.main)
     yield `\n  Parcel.main = ${main}; Parcel.makeRequire(null)()`
-    yield `\n  if (typeof module !== 'undefined') module.exports = Parcel.main`
+    yield `\n  if (typeof module !== 'undefined') module.exports = Parcel.main.module && Parcel.main.module.exports`
     yield JS_END
     if (end) yield end
     yield null
