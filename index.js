@@ -67,7 +67,7 @@ class Parcel {
   stringifyDeps(m) {
     let s = '{'
     let comma = false
-    for (const [k, v] of m) {
+    for (const [k, v] of m) if (v) {
       if (comma) s += ','
       s += JSON.stringify(k)
       s += ':'
