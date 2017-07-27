@@ -1,3 +1,5 @@
+## Is everything too slow?<br>You're still beating the transpiler?<br>[Parcel Redux](https://github.com/nathan/parcel-redux) will solve all your problems!
+
 # Parcel
 
 I hate JavaScript bundlers.
